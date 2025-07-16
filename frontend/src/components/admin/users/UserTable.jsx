@@ -11,7 +11,7 @@ const UserTable = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [isCreate, setIsCreate] = useState(false);
     const [search, setSearch] = useState("");
-    const { getAllUsers, createUser, updateUser } = useUserStore();
+    const { getAllUsers, createUser } = useUserStore();
     const users = useUserStore(state => state.users);
 
     useEffect(() => {
@@ -19,6 +19,11 @@ const UserTable = () => {
     }, [getAllUsers]);
 
     const filteredUsers = useMemo(() => {
+        users.sort((a, b) => {
+            a.isActive = a.isActive ? 1 : 0;
+            b.isActive = b.isActive ? 1 : 0;
+            return b.isActive - a.isActive;
+        });
         return users.filter(user => {
             const name = `${user.firstName} ${user.lastName}`.toLowerCase();
             return name.includes(search.toLowerCase());
@@ -34,8 +39,11 @@ const UserTable = () => {
     }
 
 
-    const handleCreate = (data) => {
-        createUser(data);
+    const handleCreate = async (data) => {
+        const res = await createUser(data);
+        if (res) {
+            setShowModal(false);
+        }
     }
 
 

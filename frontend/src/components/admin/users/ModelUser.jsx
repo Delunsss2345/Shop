@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useUserStore } from "@/store/useUserStore";
 
 const ModelUser = ({ open, onClose, isCreate, user, onCreate }) => {
-    const { updateUser, deleteUser } = useUserStore();
+    const { updateUser, deleteUser, isLoading } = useUserStore();
     const [firstName, setFirstName] = useState(user?.firstName || "");
     const [lastName, setLastName] = useState(user?.lastName || "");
     const [email, setEmail] = useState(user?.email || "");
@@ -12,6 +12,7 @@ const ModelUser = ({ open, onClose, isCreate, user, onCreate }) => {
     const [avatar, setAvatar] = useState(user?.avatar || "https://ui-avatars.com/api/?name=User");
     const [imagePreview, setImagePreview] = useState(null);
     useEffect(() => {
+
         if (user) {
             setFirstName(user.firstName || "");
             setLastName(user.lastName || "");
@@ -29,9 +30,8 @@ const ModelUser = ({ open, onClose, isCreate, user, onCreate }) => {
             setRole("user");
             setImagePreview(null);
         }
-    }, [user]);
-
-    if (!open && !user) return null;
+    }, [user, open]);
+    if (!open) return null;
 
     const handleUpload = (e) => {
         const file = e.target.files[0];
@@ -47,24 +47,22 @@ const ModelUser = ({ open, onClose, isCreate, user, onCreate }) => {
     }
 
 
-    const handleCreate = (e) => {
+    const handleCreate = async (e) => {
         e.preventDefault();
         const roleId = role === "admin" ? 1 : 2;
-        if (imagePreview) {
-            setAvatar(imagePreview);
-        }
-        onCreate({ firstName, lastName, email, phone, roleId, avatar });
-        onClose();
+
+        await onCreate({ firstName, lastName, email, phone, roleId, avatar: imagePreview || avatar });
+
     }
 
-    const handleEdit = (e) => {
+    const handleEdit = async (e) => {
         e.preventDefault();
         const roleId = role === "admin" ? 1 : 2;
-        if (imagePreview) {
-            setAvatar(imagePreview);
+
+        const res = await updateUser(Number(user.id), { firstName, lastName, email, phone, roleId, avatar: imagePreview || avatar });
+        if (res) {
+            onClose();
         }
-        updateUser({ id: Number(user.id), firstName, lastName, email, phone, roleId, avatar });
-        onClose();
     }
 
     const onDelete = (e) => {
@@ -72,7 +70,6 @@ const ModelUser = ({ open, onClose, isCreate, user, onCreate }) => {
         deleteUser(Number(user.id));
         onClose();
     }
-
     return (
         <>
             <div className="fixed inset-0 flex items-center justify-center bg-black/50" onClick={onClose}>
@@ -218,7 +215,7 @@ const ModelUser = ({ open, onClose, isCreate, user, onCreate }) => {
                                     type="submit"
                                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                                 >
-                                    {isCreate ? "Create User" : "Save Changes"}
+                                    {isCreate ? "Create User" : isLoading ? "Updating..." : "Update User"}
                                 </button>
                             </div>
                         </div>

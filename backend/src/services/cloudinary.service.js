@@ -1,10 +1,10 @@
-const cloudinary = require('@/config/cloudinary');
+const {cloudinary} = require('@/config/cloudinary');
 
 class Cloudinary {
-    async uploadCloudinary(file , folder) {
-        const result = await cloudinary.uploader.upload(image , {folder}) ; 
-        return result?.secure_url ;
-    }
+    async uploadCloudinary(file, folder) {
+        const result = await cloudinary.uploader.upload(file, { folder });
+        return result?.secure_url;
+    }   
     async destroyCloudinary(fileUrl) {
         const parts = fileUrl.split('/');
         const fileName = parts.pop(); // abcxyz.jpg
@@ -17,4 +17,4 @@ class Cloudinary {
 
 }
 
-module.exports = new Cloudinary;
+module.exports = new Cloudinary();

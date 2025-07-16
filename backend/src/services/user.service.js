@@ -1,6 +1,7 @@
 const ApiError = require('@/utils/error/ApiError');
 const bcrypt = require('bcrypt') ; 
 const db = require('@/db/models/index')
+const Cloudinary = require('@/services/cloudinary.service')
 const { where } = require('sequelize');
 class UserService {
      findAllUsers = async () => {
@@ -26,17 +27,33 @@ class UserService {
           if(exists) throw new ApiError(409 , "Email đã được sử dụng") ; 
 
           const hashPassword = await bcrypt.hash('123456', 10) ; 
+
           const user = await db.User.create({
                ...data ,  password : hashPassword 
           })
 
-          return user ; 
+          const newUser = await db.User.findByPk(user.id , {
+               include : {
+                    model : db.Role , 
+                    as : "role" 
+               }
+          });
+
+          return newUser ; 
      } 
      updateUser = async (id , userData) => {
+          let imageAvatar ; 
+          if(userData.avatar) {
+               console.log(userData.avatar) ; 
+               imageAvatar = await Cloudinary.uploadCloudinary(userData.avatar , 'shop') ; 
+               console.log(imageAvatar) ; 
+          }
+
           const result = await db.User.update(
-               { ...userData },        
-               { where: { id } } 
+               {...userData, ...(imageAvatar && { avatar: imageAvatar })},
+               {where: { id }}
           );
+
           
           if(result[0] === 0) {
                throw new ApiError(404 , "Không tìm thấy user để cập nhật") ; 

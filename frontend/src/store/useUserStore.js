@@ -3,6 +3,7 @@ import { axiosInstance } from '@/configs/axios'
 import {toast} from 'react-hot-toast'
 export const useUserStore = create((set , get) => ({
     users : [] , 
+    isLoading : false , 
     getAllUsers : async () => {
         try {
             const res = await axiosInstance.get("/user") ; 
@@ -19,8 +20,8 @@ export const useUserStore = create((set , get) => ({
             const currentUsers = get().users;
             const newUsers = [...currentUsers, res.data.data];
             set({ users: newUsers });
-            
             toast.success(res.data.message);
+            return true ; 
             
         } catch (err) {
             console.error(err);
@@ -28,26 +29,30 @@ export const useUserStore = create((set , get) => ({
             toast.error(err.response?.data?.message || 'Failed to create user');
         }
     }, 
-    updateUser : async (data) => {
+    updateUser: async (id , data) => {
         try {
-            const res = await axiosInstance.put(`/user/${data.id}`, data);
-            
-            const currentUsers = [...get().users];
-            const idx = currentUsers.findIndex(p => p.id === data.id) ; 
-            currentUsers[idx] = null ;
-            currentUsers[idx] = res.data.data ;
-            set({ users: [...currentUsers]});
-            
+            set({isLoading : true}) ;
+            const res = await axiosInstance.patch(`/user/${id}`, data);
+
+            const updatedUser = res.data.data;
+
+            const newUsers = get().users.map(user =>
+                user.id === updatedUser.id ? updatedUser : user
+            );
+
+            set({ users: newUsers });
             toast.success(res.data.message);
-            
+            return true ; 
         } catch (err) {
-            console.error(err);
             toast.error(err.response?.data?.message || 'Failed to edit user');
         }
-    } ,
+        finally {
+            set({isLoading : false}) ;
+        }
+}   ,
     deleteUser : async (id) => {
         try {
-            const res = await axiosInstance.put(`/user/block/${id}`);
+            const res = await axiosInstance.patch(`/user/block/${id}`);
             toast.success(res.data.message);
             
         } catch (err) {
