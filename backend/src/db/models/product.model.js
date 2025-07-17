@@ -18,6 +18,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.FLOAT,
         allowNull: false,
       },
+      discount: {
+        type: DataTypes.FLOAT,
+        allowNull: null,
+        defaultValue: 0,
+      },
       image: {
         type: DataTypes.TEXT,
         allowNull: true,
@@ -30,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       shortDesc: {
         type: DataTypes.STRING(255),
         allowNull: true,
-        field: "sort_desc",
+        field: "short_desc",
       },
       quantity: {
         type: DataTypes.INTEGER,
@@ -55,16 +60,13 @@ module.exports = (sequelize, DataTypes) => {
     {
       tableName: "products",
       timestamps: true,
-      defaultScope: {
-        attributes: { exclude: ["createdAt", "updatedAt"] },
-      },
     }
   );
 
   Product.associate = function (db) {
     Product.belongsTo(db.Category, {
       foreignKey: "categoryId",
-      as: "categories",
+      as: "category",
     });
   };
 

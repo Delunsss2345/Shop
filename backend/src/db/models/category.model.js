@@ -2,7 +2,7 @@
 
 module.exports = (sequelize, DataTypes) => {
   const Category = sequelize.define(
-    "categories",
+    "Category",
     {
       id: {
         type: DataTypes.BIGINT,
@@ -11,17 +11,14 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       categoryName: {
-        type: DataTypes.String(255),
+        type: DataTypes.STRING(255),
         allowNull: false,
-        filed: "category_name",
+        field: "category_name",
       },
     },
     {
       tableName: "categories",
       timestamps: true,
-      defaultScope: {
-        attributes: { exclude: ["password", "role_id"] },
-      },
     }
   );
 
@@ -31,5 +28,6 @@ module.exports = (sequelize, DataTypes) => {
       as: "products",
     });
   };
+
   return Category;
 };

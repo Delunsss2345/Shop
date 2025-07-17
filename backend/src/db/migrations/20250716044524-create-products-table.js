@@ -18,6 +18,11 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
+      discount: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+        defaultValue: 0,
+      },
       image: {
         type: Sequelize.TEXT,
         allowNull: true,
@@ -30,7 +35,7 @@ module.exports = {
       shortDesc: {
         type: Sequelize.STRING(255),
         allowNull: true,
-        field: "sort_desc",
+        field: "short_desc",
       },
       quantity: {
         type: Sequelize.INTEGER,
