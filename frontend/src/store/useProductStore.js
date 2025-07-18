@@ -1,9 +1,19 @@
 import { axiosInstance } from "@/configs/axios";
 import { create } from "zustand";
 export const useProductStore = create((set) => ({
-  products: [],
+  productPagination: [],
   featureProducts: [],
   selectedProduct: null,
+  getPaginationProducts: async (page = 1) => {
+    try {
+      const res = await axiosInstance.get("/product", {
+        params: { page, limit: 4 },
+      });
+      set({ productPagination: res.data.data });
+    } catch (err) {
+      console.error(err);
+    }
+  },
   getFeatureProducts: async () => {
     try {
       const res = await axiosInstance.get("/product/feature");

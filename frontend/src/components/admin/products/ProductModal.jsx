@@ -13,8 +13,8 @@ const ProductModal = ({
     price: "",
     factory: "",
     category: "",
-    stock: "",
-    description: "",
+    quantity: "",
+    detailDesc: "",
     image: "",
   });
   const [isEditing, setIsEditing] = useState(!isViewMode);
@@ -25,12 +25,12 @@ const ProductModal = ({
         name: product.name || "",
         price: product.price || "",
         factory: product.factory || "",
-        category: product.category || "",
-        stock: product.stock || "",
-        description:
-          product.description ||
+        category: product.category.categoryName || "",
+        quantity: product.quantity || "",
+        detailDesc:
+          product.detailDesc ||
           "High-quality product with excellent features and performance.",
-        image: product.image || "",
+        image: product.image || "/defaultLaptop.jpg",
       });
     }
     setIsEditing(!isViewMode);
@@ -73,12 +73,12 @@ const ProductModal = ({
         name: product.name || "",
         price: product.price || "",
         factory: product.factory || "",
-        category: product.category || "",
-        stock: product.stock || "",
-        description:
-          product.description ||
+        category: product.category.categoryName || "",
+        quantity: product.quantity || "",
+        detailDesc:
+          product.detailDesc ||
           "High-quality product with excellent features and performance.",
-        image: product.image || "",
+        image: product?.image || "/defaultLaptop",
       });
     }
     setIsEditing(!isViewMode);
@@ -120,7 +120,7 @@ const ProductModal = ({
           <div className="text-center">
             <div className="relative inline-block">
               <img
-                src={formData.image || product.image}
+                src={formData.image || product.image || "/defaultLaptop.jgp"}
                 alt={formData.name}
                 className="w-32 h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
               />
@@ -208,11 +208,8 @@ const ProductModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 >
-                  <option value="Smartphone">Smartphone</option>
-                  <option value="Laptop">Laptop</option>
-                  <option value="Tablet">Tablet</option>
-                  <option value="Audio">Audio</option>
-                  <option value="Wearable">Wearable</option>
+                  <option value="Gaming">Gaming</option>
+                  <option value="Office">Văn phòng</option>
                 </select>
               ) : (
                 <p className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white">
@@ -221,16 +218,16 @@ const ProductModal = ({
               )}
             </div>
 
-            {/* Stock */}
+            {/* quantity */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Stock
+                Quantity
               </label>
               {isEditing ? (
                 <input
                   type="number"
-                  name="stock"
-                  value={formData.stock}
+                  name="quantity"
+                  value={formData.quantity}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 />
@@ -238,35 +235,35 @@ const ProductModal = ({
                 <p className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <span
                     className={`px-2 py-1 rounded-full text-sm font-medium ${
-                      formData.stock > 20
+                      formData.quantity > 20
                         ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                        : formData.stock > 10
+                        : formData.quantity > 10
                         ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200"
                         : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
                     }`}
                   >
-                    {formData.stock} units
+                    {formData.quantity} units
                   </span>
                 </p>
               )}
             </div>
 
-            {/* Description */}
+            {/* detailDesc */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Description
               </label>
               {isEditing ? (
                 <textarea
-                  name="description"
-                  value={formData.description}
+                  name="detailDesc"
+                  value={formData.detailDesc}
                   onChange={handleInputChange}
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 />
               ) : (
                 <p className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white">
-                  {formData.description}
+                  {formData.detailDesc}
                 </p>
               )}
             </div>

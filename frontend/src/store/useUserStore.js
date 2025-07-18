@@ -27,9 +27,9 @@ export const useUserStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/user", data);
 
-      const currentUsers = get().users;
+      const currentUsers = get().userAll;
       const newUsers = [...currentUsers, res.data.data];
-      set({ users: newUsers });
+      set({ userAll: newUsers });
       toast.success(res.data.message);
       return true;
     } catch (err) {

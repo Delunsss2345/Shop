@@ -10,12 +10,20 @@ const {
   getProductById,
   updateProduct,
   deleteProduct,
-  blockProduct,
+  getAll,
   getFeatureProduct,
 } = ProductController;
 
-// GET /api/products - Lấy tất cả sản phẩm
-router.get("/", getAllProducts);
+router.get("/all", getAll);
+
+// GET /api/products - Lấy tất cả sản phẩm phân trang
+router.get(
+  "/",
+  query("page").isNumeric().withMessage("Trang phải là số").toInt(),
+  query("limit").isNumeric().withMessage("Giới hạn phải là số").toInt(),
+  validationHandler,
+  getAllProducts
+);
 
 // POST /api/product - Tạo sản phẩm mới
 router.post(

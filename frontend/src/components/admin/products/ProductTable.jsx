@@ -1,5 +1,7 @@
+import Pagination from "@/components/common/Pagination";
+import { useProductStore } from "@/store/useProductStore";
 import { AlertTriangle, Eye, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProductModal from "./ProductModal";
 
 const ProductTable = () => {
@@ -9,89 +11,22 @@ const ProductTable = () => {
   const [isViewMode, setIsViewMode] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
-  const [productList, setProductList] = useState([
-    {
-      id: 1,
-      name: "iPhone 15 Pro Max 256GB",
-      price: 29990000,
-      factory: "Apple",
-      image: "/api/placeholder/60/60",
-      stock: 25,
-      category: "Smartphone",
-    },
-    {
-      id: 2,
-      name: "Samsung Galaxy S24 Ultra",
-      price: 26990000,
-      factory: "Samsung",
-      image: "/api/placeholder/60/60",
-      stock: 18,
-      category: "Smartphone",
-    },
-    {
-      id: 3,
-      name: "MacBook Pro M3 14 inch",
-      price: 52990000,
-      factory: "Apple",
-      image: "/api/placeholder/60/60",
-      stock: 12,
-      category: "Laptop",
-    },
-    {
-      id: 4,
-      name: "Dell XPS 13 Plus",
-      price: 35990000,
-      factory: "Dell",
-      image: "/api/placeholder/60/60",
-      stock: 8,
-      category: "Laptop",
-    },
-    {
-      id: 5,
-      name: "AirPods Pro 2nd Gen",
-      price: 6990000,
-      factory: "Apple",
-      image: "/api/placeholder/60/60",
-      stock: 45,
-      category: "Audio",
-    },
-    {
-      id: 6,
-      name: "iPad Air M2 11 inch",
-      price: 16990000,
-      factory: "Apple",
-      image: "/api/placeholder/60/60",
-      stock: 22,
-      category: "Tablet",
-    },
-    {
-      id: 7,
-      name: "Sony WH-1000XM5",
-      price: 8990000,
-      factory: "Sony",
-      image: "/api/placeholder/60/60",
-      stock: 15,
-      category: "Audio",
-    },
-    {
-      id: 8,
-      name: "Apple Watch Series 9",
-      price: 10990000,
-      factory: "Apple",
-      image: "/api/placeholder/60/60",
-      stock: 30,
-      category: "Wearable",
-    },
-  ]);
+  const { productPagination, getPaginationProducts } = useProductStore();
 
-  const formatPrice = (price) => {
+  useEffect(() => {
+    getPaginationProducts();
+  }, [getPaginationProducts]);
+
+  const formatPrice = (price, discount = 0) => {
+    const priceDiscount = price * (discount / 100);
+    const newPrice = price - priceDiscount;
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
-    }).format(price);
+    }).format(newPrice);
   };
 
-  const filteredProducts = productList.filter(
+  const filteredProducts = productPagination.filter(
     (product) =>
       product.name.toLowerCase().includes(search.toLowerCase()) ||
       product.factory.toLowerCase().includes(search.toLowerCase())
@@ -130,7 +65,6 @@ const ProductTable = () => {
 
   const handleAdd = () => {
     const newProduct = {
-      id: Math.max(...productList.map((p) => p.id)) + 1,
       name: "",
       price: 0,
       factory: "",
@@ -177,10 +111,10 @@ const ProductTable = () => {
     <div className="rounded-xl p-6 border border-gray-700 w-full">
       <div className="flex flex-wrap gap-y-2 sm:gap-y-0 justify-between items-center mb-4">
         <h2 className="text-lg font-medium">Products List</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            className="flex items-center self-start my-auto gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
           >
             <span>Add Product</span>
           </button>
@@ -193,7 +127,6 @@ const ProductTable = () => {
           />
         </div>
       </div>
-
       <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-200 dark:scrollbar-track-gray-800">
         <table className="w-full text-left min-w-[800px]">
           <thead>
@@ -226,7 +159,7 @@ const ProductTable = () => {
                   <td className="py-4 px-2">
                     <div className="flex items-center gap-3">
                       <img
-                        src={product.image}
+                        src={product?.image || "/defaultLaptop.jpg"}
                         alt={product.name}
                         className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
                       />
@@ -235,7 +168,7 @@ const ProductTable = () => {
                           {product.name}
                         </div>
                         <div className="text-sm text-gray-500 truncate">
-                          {product.category}
+                          {product.category.categoryName}
                         </div>
                       </div>
                     </div>
@@ -243,7 +176,7 @@ const ProductTable = () => {
 
                   <td className="py-4 px-2">
                     <span className="font-semibold text-green-600 whitespace-nowrap">
-                      {formatPrice(product.price)}
+                      {formatPrice(product.price, product.discount)}
                     </span>
                   </td>
 
@@ -256,14 +189,14 @@ const ProductTable = () => {
                   <td className="py-4 px-2">
                     <span
                       className={`px-2 py-1 rounded-full text-sm font-medium whitespace-nowrap ${
-                        product.stock > 20
+                        product.quantity > 20
                           ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                          : product.stock > 10
+                          : product.quantity > 10
                           ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200"
                           : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
                       }`}
                     >
-                      {product.stock} units
+                      {product.quantity} units
                     </span>
                   </td>
 
@@ -291,28 +224,13 @@ const ProductTable = () => {
           </tbody>
         </table>
       </div>
-
       {/* Pagination */}
-      <div className="flex justify-between items-center mt-6">
-        <div className="text-sm text-gray-500">
-          Showing {filteredProducts.length} of {productList.length} products
-        </div>
-        <div className="flex gap-2">
-          <button className="px-3 py-1 border border-gray-600 rounded hover:bg-gray-700 transition-colors text-sm">
-            Previous
-          </button>
-          <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
-            1
-          </button>
-          <button className="px-3 py-1 border border-gray-600 rounded hover:bg-gray-700 transition-colors text-sm">
-            2
-          </button>
-          <button className="px-3 py-1 border border-gray-600 rounded hover:bg-gray-700 transition-colors text-sm">
-            Next
-          </button>
-        </div>
-      </div>
-
+      <Pagination
+        getApiPage={getPaginationProducts}
+        filterList={filteredProducts}
+        list={productPagination}
+        name={"user"}
+      />
       {/* Product Modal */}
       <ProductModal
         isOpen={showModal}
@@ -321,54 +239,54 @@ const ProductTable = () => {
         isViewMode={isViewMode}
         onSave={handleSaveProduct}
       />
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div
-          onClick={() => setShowDeleteModal(false)}
-          className="fixed inset-0 bg-black/25 flex items-center justify-center z-50"
-        >
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div className="p-4">
-              <div className="flex gap-4">
-                {/* Warning Icon */}
-                <div className="flex items-center justify-center size-12 bg-red-100 dark:bg-red-900 rounded-full">
-                  <AlertTriangle className="size-6 text-red-600 dark:text-red-400" />
-                </div>
-
-                <div className="flex-1">
-                  {/* Title */}
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Delete product
-                  </h3>
-
-                  {/* Message */}
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">
-                    You will lose all data of this product by deleting it. This
-                    action cannot be undone.
-                  </p>
-                </div>
+      {/* Delete Confirmation Modal */}(
+      <div
+        onClick={() => setShowDeleteModal(false)}
+        className={`transition-opacity fixed inset-0 bg-black/25 flex items-center justify-center z-50 ${
+          !showDeleteModal ? "invisible opacity-0" : "visible opacity-100"
+        } `}
+      >
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="p-4">
+            <div className="flex gap-4">
+              {/* Warning Icon */}
+              <div className="flex items-center justify-center size-12 bg-red-100 dark:bg-red-900 rounded-full">
+                <AlertTriangle className="size-6 text-red-600 dark:text-red-400" />
               </div>
 
-              {/* Buttons */}
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={cancelDelete}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Delete Product
-                </button>
+              <div className="flex-1">
+                {/* Title */}
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Delete product
+                </h3>
+
+                {/* Message */}
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  You will lose all data of this product by deleting it. This
+                  action cannot be undone.
+                </p>
               </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete Product
+              </button>
             </div>
           </div>
         </div>
-      )}
+      </div>
+      )
     </div>
   );
 };

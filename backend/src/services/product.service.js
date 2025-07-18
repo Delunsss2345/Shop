@@ -4,9 +4,23 @@ const CloudinaryService = require("@/services/cloudinary.service");
 const ApiError = require("@/utils/error/ApiError");
 
 class ProductService {
-  async getAllProducts() {
+  async findAll() {
     const products = await db.Product.findAll({
       order: [["created_at", "DESC"]],
+    });
+
+    return products;
+  }
+  async getAllProducts(page = 1, limit = 4) {
+    const offset = (page - 1) * limit;
+    const products = await db.Product.findAll({
+      include: {
+        model: db.Category,
+        as: "category", //bí danh
+      },
+      order: [["created_at", "DESC"]],
+      offset,
+      limit,
     });
 
     return products;

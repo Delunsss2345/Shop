@@ -1,9 +1,18 @@
 const ProductService = require("@/services/product.service");
+const { matchedData } = require("express-validator");
 
 class ProductController {
-  async getAllProducts(req, res) {
-    const products = await ProductService.getAllProducts();
+  async getAll(req, res) {
+    const products = await ProductService.findAll();
     res.success(200, "Lấy tất cả sản phẩm thành công", products);
+  }
+
+  async getAllProducts(req, res) {
+    const data = matchedData(req, { locations: ["query"] }); //to Int hoặc động khi dùng vậy
+    const page = data.page || 1;
+    const limit = data.limit || 4;
+    const products = await ProductService.getAllProducts(page, limit);
+    res.success(200, "Phân chia sản phẩm thành công", products);
   }
 
   async createProduct(req, res) {
