@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import ProductModal from "./ProductModal";
 
 const ProductTable = () => {
+  const { createProduct, updateProduct, deleteProduct } = useProductStore();
+
+  const [isAdd, setAdd] = useState(false);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -36,12 +39,11 @@ const ProductTable = () => {
     setSelectedProduct(product);
     setIsViewMode(true);
     setShowModal(true);
+    setAdd(false);
   };
 
-  const handleEdit = (product) => {
-    setSelectedProduct(product);
-    setIsViewMode(false);
-    setShowModal(true);
+  const handleEdit = async (data) => {
+    await updateProduct(data);
   };
 
   const handleDelete = (product) => {
@@ -49,10 +51,9 @@ const ProductTable = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (productToDelete) {
-      setProductList((prev) => prev.filter((p) => p.id !== productToDelete.id));
-      console.log("Deleted product:", productToDelete);
+      await deleteProduct(productToDelete.id);
     }
     setShowDeleteModal(false);
     setProductToDelete(null);
@@ -64,42 +65,10 @@ const ProductTable = () => {
   };
 
   const handleAdd = () => {
-    const newProduct = {
-      name: "",
-      price: 0,
-      factory: "",
-      image: "/api/placeholder/60/60",
-      stock: 0,
-      category: "Smartphone",
-    };
-    setSelectedProduct(newProduct);
+    setSelectedProduct(null);
+    setAdd(true);
     setIsViewMode(false);
     setShowModal(true);
-  };
-
-  const handleSaveProduct = (productData) => {
-    if (
-      selectedProduct &&
-      selectedProduct.id &&
-      productList.find((p) => p.id === selectedProduct.id)
-    ) {
-      // Edit existing product
-      setProductList((prev) =>
-        prev.map((p) =>
-          p.id === selectedProduct.id
-            ? { ...productData, id: selectedProduct.id }
-            : p
-        )
-      );
-    } else {
-      // Add new product
-      const newProduct = {
-        ...productData,
-        id: Math.max(...productList.map((p) => p.id)) + 1,
-        image: "/api/placeholder/60/60",
-      };
-      setProductList((prev) => [...prev, newProduct]);
-    }
   };
 
   const handleCloseModal = () => {
@@ -229,17 +198,19 @@ const ProductTable = () => {
         getApiPage={getPaginationProducts}
         filterList={filteredProducts}
         list={productPagination}
-        name={"user"}
+        name={"product"}
       />
       {/* Product Modal */}
       <ProductModal
         isOpen={showModal}
+        isCreate={isAdd}
         onClose={handleCloseModal}
+        onEdit={handleEdit}
         product={selectedProduct}
         isViewMode={isViewMode}
-        onSave={handleSaveProduct}
+        onSave={createProduct}
       />
-      {/* Delete Confirmation Modal */}(
+      {/* Delete Confirmation Modal */}
       <div
         onClick={() => setShowDeleteModal(false)}
         className={`transition-opacity fixed inset-0 bg-black/25 flex items-center justify-center z-50 ${
@@ -286,7 +257,6 @@ const ProductTable = () => {
           </div>
         </div>
       </div>
-      )
     </div>
   );
 };

@@ -1,18 +1,23 @@
+import { useProductStore } from "@/store/useProductStore";
 import { Save, Upload, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const ProductModal = ({
   isOpen,
+  isCreate,
+  onEdit,
   onClose,
   product,
   isViewMode = true,
   onSave,
 }) => {
+  const { loading } = useProductStore();
+  const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
     factory: "",
-    category: "",
+    categoryId: "1",
     quantity: "",
     detailDesc: "",
     image: "",
@@ -22,10 +27,11 @@ const ProductModal = ({
   useEffect(() => {
     if (product) {
       setFormData({
+        id: product.id,
         name: product.name || "",
         price: product.price || "",
         factory: product.factory || "",
-        category: product.category.categoryName || "",
+        categoryId: product.category.categoryId || "1",
         quantity: product.quantity || "",
         detailDesc:
           product.detailDesc ||
@@ -42,6 +48,18 @@ const ProductModal = ({
       currency: "VND",
     }).format(price);
   };
+  const handleImageProduct = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const readFile = new FileReader();
+    readFile.onload = () => {
+      const result = readFile.result;
+      setImagePreview(result);
+    };
+    readFile.readAsDataURL(file);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -51,15 +69,25 @@ const ProductModal = ({
     }));
   };
 
-  const handleSave = () => {
-    console.log("Saving product:", formData);
-
-    // Nếu có callback onSave thì gọi (để add vào list)
+  const handleSave = async () => {
     if (onSave) {
-      onSave(formData);
+      const dataToSave = {
+        ...formData,
+        image: imagePreview || formData.image,
+      };
+      await onSave(dataToSave);
     }
 
     // Logic save product
+    onClose();
+  };
+
+  const handleUpdate = async () => {
+    const dataToSave = {
+      ...formData,
+      image: imagePreview || formData.image,
+    };
+    await onEdit(dataToSave);
     onClose();
   };
 
@@ -70,15 +98,16 @@ const ProductModal = ({
   const handleCancel = () => {
     if (product) {
       setFormData({
+        id: product.id,
         name: product.name || "",
         price: product.price || "",
         factory: product.factory || "",
-        category: product.category.categoryName || "",
+        categoryId: product.category.categoryId || "",
         quantity: product.quantity || "",
         detailDesc:
           product.detailDesc ||
           "High-quality product with excellent features and performance.",
-        image: product?.image || "/defaultLaptop",
+        image: product.image || "/defaultLaptop.jpg",
       });
     }
     setIsEditing(!isViewMode);
@@ -90,7 +119,7 @@ const ProductModal = ({
     }
   };
 
-  if (!isOpen || !product) return null;
+  if (!isOpen) return null;
 
   return (
     <div
@@ -104,7 +133,11 @@ const ProductModal = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {isEditing ? "Edit Product" : "Product Details"}
+            {isCreate
+              ? "Create Product"
+              : isEditing
+              ? "Edit Product"
+              : "Product Details"}
           </h2>
           <button
             onClick={onClose}
@@ -119,15 +152,29 @@ const ProductModal = ({
           {/* Product Image */}
           <div className="text-center">
             <div className="relative inline-block">
+              <input
+                className="hidden"
+                onChange={handleImageProduct}
+                id="imageUpdate"
+                type="file"
+              />
               <img
-                src={formData.image || product.image || "/defaultLaptop.jgp"}
+                src={
+                  imagePreview ||
+                  formData.image ||
+                  product?.image ||
+                  "/defaultLaptop.jpg"
+                }
                 alt={formData.name}
                 className="w-32 h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
               />
               {isEditing && (
-                <button className="absolute bottom-2 right-2 p-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors">
+                <label
+                  htmlFor="imageUpdate"
+                  className="absolute bottom-2 right-2 p-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+                >
                   <Upload size={16} />
-                </button>
+                </label>
               )}
             </div>
           </div>
@@ -201,19 +248,19 @@ const ProductModal = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Category
               </label>
-              {isEditing ? (
+              {isCreate || isEditing ? (
                 <select
                   name="category"
-                  value={formData.category}
+                  value={formData.categoryId}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 >
-                  <option value="Gaming">Gaming</option>
-                  <option value="Office">Văn phòng</option>
+                  <option value="1">Gaming</option>
+                  <option value="2">Văn phòng</option>
                 </select>
               ) : (
                 <p className="px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white">
-                  {formData.category}
+                  {product && product.category.categoryName}
                 </p>
               )}
             </div>
@@ -272,10 +319,10 @@ const ProductModal = ({
 
         {/* Footer */}
         <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-          {isEditing ? (
+          {isCreate ? (
             <>
               <button
-                onClick={handleCancel}
+                onClick={onClose}
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
@@ -285,22 +332,22 @@ const ProductModal = ({
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
               >
                 <Save size={16} />
-                Save Changes
+                {loading ? "Loading..." : "Create"}
               </button>
             </>
           ) : (
             <>
               <button
-                onClick={onClose}
+                onClick={isEditing ? handleCancel : onClose}
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
-                Close
+                {isEditing ? "Cancel" : "Close"}
               </button>
               <button
-                onClick={handleEdit}
+                onClick={!isEditing ? handleEdit : handleUpdate}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
-                Edit Product
+                {!isEditing ? "Edit" : loading ? "Update..." : "Save Changes"}
               </button>
             </>
           )}

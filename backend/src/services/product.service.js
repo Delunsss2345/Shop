@@ -27,8 +27,9 @@ class ProductService {
   }
 
   async createProduct(data) {
+    console.log(data);
     let imageProduct;
-    if (data?.image) {
+    if (data.image) {
       imageProduct = await CloudinaryService.uploadCloudinary(
         data.image,
         "product"
@@ -61,8 +62,24 @@ class ProductService {
   }
 
   async updateProduct(id, data) {
-    const product = await db.Product.findByPk(id);
+    console.log(data);
+    const product = await db.Product.findOne({
+      where: { id },
+      include: {
+        model: db.Category,
+        as: "category",
+      },
+    });
 
+    let imageProduct;
+    if (data.image !== product.image) {
+      imageProduct = await CloudinaryService.uploadCloudinary(
+        data.image,
+        "product"
+      );
+
+      data.image = imageProduct;
+    }
     if (!product) throw new ApiError(404, "Không tìm thấy sản phẩm");
 
     await product.update({ ...data });
@@ -71,9 +88,12 @@ class ProductService {
   }
 
   async deleteProduct(id) {
+    const product = await db.Product.findByPk(id);
+    if (product.image) {
+      await CloudinaryService.destroyCloudinary(product.image);
+    }
     const res = await db.Product.destroy({ where: { id } });
     if (!res) throw new ApiError(404, "Không tìm thấy sản phẩm để xoá");
-
     return res;
   }
 }

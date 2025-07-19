@@ -36,11 +36,10 @@ router.post(
       .isLength({ max: 1000 })
       .withMessage("Mô tả không được quá 1000 ký tự"),
     body("quantity")
-      .isInt()
+      .isNumeric()
       .withMessage("Số lượng sản phẩm phải là số")
       .toInt(),
-    body("sold").isInt().withMessage("Số lượng bán phải là số").toInt(),
-    body("categoryId").isInt().withMessage("Danh mục phải hợp lệ").toInt(),
+    body("categoryId").isNumeric().withMessage("Danh mục phải hợp lệ").toInt(),
     validationHandler,
   ],
   createProduct
