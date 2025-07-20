@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 // Middlewares
 const responseHandler = require("@/middlewares/responseHandler");
 const errorHandler = require("@/middlewares/errorHandler");
@@ -7,10 +8,11 @@ const errorHandler = require("@/middlewares/errorHandler");
 //Router
 const userRoutes = require("@/routes/user.routes");
 const productRoutes = require("@/routes/product.routes");
+const authRoutes = require("@/routes/auth.route");
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
-
+app.use(cookieParser());
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -23,6 +25,7 @@ app.use(responseHandler);
 
 app.use("/api/user", userRoutes);
 app.use("/api/product", productRoutes);
+app.use("/api/auth", authRoutes);
 
 app.use(errorHandler);
 module.exports = app;
