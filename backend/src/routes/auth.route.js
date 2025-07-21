@@ -3,10 +3,10 @@ const router = express.Router();
 const { validationHandler } = require("@/middlewares/validationHandler");
 const AuthController = require("@/controllers/auth.controller");
 const { body } = require("express-validator");
-const { verifyAccessToken } = require("@/utils/jwt/jwt");
+const { checkAuth } = require("@/middlewares/checkAuth");
 
 //GET /api/auth/me
-router.get("/me", verifyAccessToken, AuthController.getMe);
+router.get("/me", checkAuth, AuthController.getMe);
 
 // POST /api/auth/register
 router.post(
@@ -33,7 +33,17 @@ router.post(
 );
 
 // POST /api/auth/login
-router.post("/login", AuthController.login);
+router.post(
+  "/login",
+  [
+    body("email").isEmail().withMessage("Sai định dạng email"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Mật khẩu phải trên 6 ký tự"),
+    validationHandler,
+  ],
+  AuthController.login
+);
 
 // POST /api/auth/logout
 router.post("/logout", AuthController.logout);

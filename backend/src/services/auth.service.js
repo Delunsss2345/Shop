@@ -1,10 +1,9 @@
 const ApiError = require("@/utils/error/ApiError");
 const bcrypt = require("bcrypt");
 const db = require("@/db/models/index");
-const Cloudinary = require("@/services/cloudinary.service");
+const jwtService = require("@/services/jwt.service");
+const refreshTokenService = require("@/services/refreshToken.service");
 const { where } = require("sequelize");
-const { setCookie } = require("@/services/jwt.service");
-const { generateToken } = require("@/utils/jwt/generateToken");
 class AuthService {
   register = async (data, res) => {
     const exists = await db.User.findOne({
@@ -28,8 +27,12 @@ class AuthService {
     });
 
     if (newUser) {
-      const { accessToken, refreshToken } = generateToken({ userId: user.id });
-      setCookie(res, accessToken, refreshToken);
+      const accessToken = jwtService.generateAccessToken(newUser.id);
+      const refreshToken = await refreshTokenService.createRefreshToken(
+        newUser.id
+      );
+
+      setCookie(res, accessToken, refreshToken.refreshToken);
     } else {
       throw new ApiError(409, "Đăng ký thất bại vui lòng thử lại sau");
     }
@@ -37,9 +40,44 @@ class AuthService {
     return newUser;
   };
 
-  login = async (email, password) => {};
+  login = async (email, password) => {
+    const user = await db.User.scope(null).findOne({
+      where: { email },
+    });
+    console.log(user.id, password);
+    if (!user) throw new ApiError(404, "Không tồn tại user");
 
-  logout = async (res) => {
+    const isPassword = await bcrypt.compare(password, user.password);
+
+    if (!isPassword) {
+      throw new ApiError(400, "Sai tài khoản hoặc mật khẩu");
+    }
+    const accessToken = jwtService.generateAccessToken(user.id);
+    const refreshToken = await refreshTokenService.createRefreshToken(user.id);
+
+    const userLogin = await db.User.findOne({
+      where: { email },
+    });
+
+    return {
+      userLogin,
+      accessToken,
+      refreshToken: refreshToken.refreshToken,
+    };
+  };
+
+  /**
+   *
+   *
+   * @param {Response} res
+   * @memberof AuthService
+   */
+
+  logout = async (req, res) => {
+    const token = req.cookies.refreshToken;
+    const refreshToken = await refreshTokenService.findValidRefreshToken(token);
+    await refreshTokenService.deleteRefreshToken(refreshToken);
+
     res.clearCookie("accessToken", {
       httpOnly: true,
       secure: true,
@@ -52,7 +90,28 @@ class AuthService {
     });
   };
 
-  refreshToken = async (token) => {};
+  refreshAccessToken = async (token) => {
+    const refreshToken = await refreshTokenService.findValidRefreshToken(token);
+    if (!refreshToken) {
+      throw new ApiError(401, "Token không hợp lệ");
+    }
+
+    const accessToken = await jwtService.generateAccessToken(
+      refreshToken.userId
+    );
+
+    await refreshTokenService.deleteRefreshToken(refreshToken);
+
+    const newRefreshToken = await refreshTokenService.createRefreshToken(
+      refreshToken.userId
+    );
+
+    
+    return {
+      accessToken,
+      newRefreshToken: newRefreshToken.refreshToken,
+    };
+  };
 }
 
 module.exports = new AuthService();

@@ -1,16 +1,14 @@
-const crypto = require("crypto");
-const jwt = require("jsonwebtoken");
-const generateToken = (payload) => {
-  const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: "15m",
-  });
+function generateToken(length = 32) {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let token = "";
 
-  const refreshToken = crypto.randomBytes(32).toString("hex");
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    token += characters[randomIndex];
+  }
 
-  return {
-    accessToken,
-    refreshToken,
-  };
-};
+  return token;
+}
 
-module.exports = { generateToken };
+module.exports = generateToken;
