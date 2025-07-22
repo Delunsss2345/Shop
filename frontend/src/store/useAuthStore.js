@@ -21,12 +21,13 @@ export const useAuthStore = create((set, get) => ({
 
   signUp: async (data) => {
     try {
+      console.log(data);
       set({ loading: true });
-      const res = await axiosInstance.post("/auth/signup", data);
+      const res = await axiosInstance.post("/auth/register", data);
       set({ userAuth: res.data.data });
       toast.success(res.data.message);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Đăng ký thất bại");
+      toast.error(error?.response.data.message || "Đăng ký thất bại");
       set({ userAuth: null });
     } finally {
       set({ loading: false });
@@ -40,7 +41,7 @@ export const useAuthStore = create((set, get) => ({
       set({ userAuth: res.data.data });
       toast.success(res.data.message);
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Đăng nhập thất bại");
+      toast.error(error?.response.data.message || "Đăng nhập thất bại");
       set({ userAuth: null });
     } finally {
       set({ loading: false });

@@ -7,8 +7,11 @@ class AuthController {
   };
 
   register = async (req, res) => {
-    const user = await AuthService.register(req.body, res);
-    res.success(201, "Đăng ký thành công", user);
+    console.log(req);
+    const result = await AuthService.register(req.body);
+    console.log(result);
+    jwtService.setCookie(res, result.accessToken, result.refreshToken);
+    res.success(201, "Đăng ký thành công", result.newUser);
   };
 
   login = async (req, res) => {

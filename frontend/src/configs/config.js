@@ -35,11 +35,11 @@ export const configRoutes = [
         component: ProductDetail,
         path: "/product/:id",
       },
+      {
+        component: CartPage,
+        path: "/cart",
+      },
     ],
-  },
-  {
-    component: CartPage,
-    path: "/cart",
   },
   {
     component: ProfilePage,

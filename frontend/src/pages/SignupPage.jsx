@@ -1,9 +1,12 @@
+import { useAuthStore } from "@/store/useAuthStore";
 import { Eye, EyeOff, Lock, Mail, Phone, User, UserPlus } from "lucide-react";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { FaFacebook, FaPinterest } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { Link } from "react-router-dom";
 const SignupPage = () => {
+  const { signUp } = useAuthStore();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -24,17 +27,26 @@ const SignupPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      // Signup logic here
-      console.log("Signup attempt:", formData);
-      // Add actual signup API call here
-    } catch (error) {
-      console.error("Signup error:", error);
-    } finally {
-      setIsLoading(false);
+    if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      return toast.error("Sai định dạng email");
     }
+
+    if (!/^.{6,}$/.test(formData.password)) {
+      return toast.error("Mật khẩu quá ngắn");
+    }
+
+    if (!/^[A-Z][a-z]*(\s+[A-Z][a-z]*)*$/.test(formData.firstName)) {
+      return toast.error("Họ phải viết hoa chữ cái đầu");
+    }
+    if (!/^[A-Z][a-z]*(\s+[A-Z][a-z]*)*$/.test(formData.lastName)) {
+      return toast.error("Tên phải viết hoa chữ cái đầu");
+    }
+
+    if (!/^0[2-9]\d{8}$/.test(formData.phone)) {
+      return toast.error("Số không hợp lệ");
+    }
+
+    await signUp(formData);
   };
 
   return (

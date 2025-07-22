@@ -62,13 +62,12 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: "roleId",
       as: "role",
     });
-  };
 
-  User.associate = (db) => {
     User.hasMany(db.RefreshToken, {
       foreignKey: "userId",
       as: "refreshTokens",
     });
   };
+
   return User;
 };

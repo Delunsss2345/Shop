@@ -3,7 +3,6 @@ const bcrypt = require("bcrypt");
 const db = require("@/db/models/index");
 const jwtService = require("@/services/jwt.service");
 const refreshTokenService = require("@/services/refreshToken.service");
-const { where } = require("sequelize");
 class AuthService {
   register = async (data, res) => {
     const exists = await db.User.findOne({
@@ -26,18 +25,14 @@ class AuthService {
       },
     });
 
-    if (newUser) {
-      const accessToken = jwtService.generateAccessToken(newUser.id);
-      const refreshToken = await refreshTokenService.createRefreshToken(
-        newUser.id
-      );
-
-      setCookie(res, accessToken, refreshToken.refreshToken);
-    } else {
+    if (!newUser) {
       throw new ApiError(409, "Đăng ký thất bại vui lòng thử lại sau");
     }
-
-    return newUser;
+    const accessToken = jwtService.generateAccessToken(newUser.id);
+    const refreshToken = await refreshTokenService.createRefreshToken(
+      newUser.id
+    );
+    return { newUser, accessToken, refreshToken: refreshToken.refreshToken };
   };
 
   login = async (email, password) => {
@@ -106,7 +101,6 @@ class AuthService {
       refreshToken.userId
     );
 
-    
     return {
       accessToken,
       newRefreshToken: newRefreshToken.refreshToken,
