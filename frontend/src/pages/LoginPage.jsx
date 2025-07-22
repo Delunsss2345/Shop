@@ -1,9 +1,13 @@
+import { useAuthStore } from "@/store/useAuthStore";
 import { Eye, EyeOff, Lock, LogIn, Mail } from "lucide-react";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 import { FaFacebook, FaPinterest } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { Link } from "react-router-dom";
+
 const LoginPage = () => {
+  const { login } = useAuthStore();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,17 +25,15 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      // Login logic here
-      console.log("Login attempt:", formData);
-      // Add actual login API call here
-    } catch (error) {
-      console.error("Login error:", error);
-    } finally {
-      setIsLoading(false);
+    if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      return toast.error("Sai định dạng email");
     }
+
+    if (!/^.{6,}$/.test(formData.password)) {
+      return toast.error("Mật khẩu quá ngắn");
+    }
+
+    await login(formData);
   };
 
   return (
@@ -63,7 +65,7 @@ const LoginPage = () => {
                   <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
