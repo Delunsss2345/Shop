@@ -4,6 +4,8 @@ import ProductPageAdmin from "@/pages/ProductPageAdmin";
 
 import ProductDetail from "@/components/products/ProductDetail";
 import HomePage from "@/pages/HomePage";
+import LoginPage from "@/pages/LoginPage";
+import SignupPage from "@/pages/SignupPage";
 import UserPage from "@/pages/UserPage";
 import { Route, Routes } from "react-router-dom";
 
@@ -19,6 +21,9 @@ const AppRoutes = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/product/:id" element={<ProductDetail />} />
       </Route>
+
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
     </Routes>
   );
 };
