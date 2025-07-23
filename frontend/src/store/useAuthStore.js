@@ -13,7 +13,6 @@ export const useAuthStore = create((set, get) => ({
       console.log(get().userAuth);
     } catch (error) {
       set({ userAuth: null });
-      console.error(error?.message);
     } finally {
       set({ loadingAuth: false });
     }

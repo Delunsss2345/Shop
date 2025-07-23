@@ -1,37 +1,11 @@
-import { ArrowLeft, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "iPhone 15 Pro Max 256GB",
-      price: 29990000,
-      quantity: 1,
-      image: "/api/placeholder/80/80",
-      color: "Natural Titanium",
-      storage: "256GB",
-    },
-    {
-      id: 2,
-      name: "Samsung Galaxy S24 Ultra",
-      price: 26990000,
-      quantity: 2,
-      image: "/api/placeholder/80/80",
-      color: "Titanium Black",
-      storage: "512GB",
-    },
-    {
-      id: 3,
-      name: "MacBook Pro M3 14 inch",
-      price: 52990000,
-      quantity: 1,
-      image: "/api/placeholder/80/80",
-      color: "Space Gray",
-      storage: "512GB SSD",
-    },
-  ]);
+  const [cartItems, setCarItems] = useState(
+    JSON.parse(localStorage.getItem("items")) || []
+  );
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -45,215 +19,230 @@ const CartPage = () => {
       removeItem(id);
       return;
     }
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
+    const newCartItems = cartItems.map((item) =>
+      item.id === id ? { ...item, itemQuantity: newQuantity } : item
     );
+    localStorage.setItem("items", JSON.stringify(newCartItems));
+    setCarItems(newCartItems);
   };
 
   const removeItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+    let newCartItems = cartItems.filter((item) => item.id !== id);
+    localStorage.setItem("items", JSON.stringify(newCartItems));
+    setCarItems(newCartItems);
   };
 
-  const getTotalPrice = () => {
+  const getTotalPrice = (item) => {
+    const total =
+      item.itemQuantity * parseFloat(item.price.replaceAll(".", ""));
+    return total;
+  };
+
+  const getTotalItems = () => {
     return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) =>
+        total + item.itemQuantity * parseFloat(item.price.replaceAll(".", "")),
       0
     );
   };
 
-  const getTotalItems = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
+  const handlePay = (e) => {
+    e.preventDefault();
+    const carts = cartItems.map((cart) => ({
+      ...cart,
+      price: parseFloat(cart.price.replaceAll(".", "")),
+    }));
+    console.log(carts);
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Cart Banner */}
-      <div className=" text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-opacity-20 rounded-full flex items-center justify-center">
-                <ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8" />
-              </div>
-            </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-4">
-              Shopping Cart
-            </h1>
-            <p className="text-sm sm:text-lg text-blue-100">
-              {cartItems.length > 0
-                ? `You have ${getTotalItems()} item${
-                    getTotalItems() > 1 ? "s" : ""
-                  } in your cart`
-                : "Your cart is empty"}
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="flex flex-col py-12  items-center justify-center">
+      <h2 className="text-center text-4xl">Giỏ hàng</h2>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full sm:max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {cartItems.length === 0 ? (
-          /* Empty Cart State */
-          <div className="text-center py-16">
-            <div className="w-32 h-32 bg-gray-200 dark:bg-gray-950 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShoppingCart className="w-16 h-16 text-gray-400" />
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-              Your cart is empty
-            </h2>
+          <div className="text-center">
             <p className="text-gray-600 dark:text-gray-400 mb-8">
-              Looks like you haven't added any items to your cart yet.
+              Giỏ hàng của bạn đang trống
             </p>
             <Link
               to="/products"
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 border border-gray-100/100 text-white px-6 py-3  transition-colors"
             >
-              <ArrowLeft className="w-5 h-5" />
-              Continue Shopping
+              Tiếp tục mua sắm
             </Link>
           </div>
         ) : (
-          <div className="lg:grid lg:grid-cols-12 lg:gap-8">
+          <div className="font-light items-center justify-center lg:grid lg:grid-cols-12 lg:gap-8 ">
             {/* Cart Items */}
-            <div className="lg:col-span-8">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-                    Cart Items ({getTotalItems()})
-                  </h2>
-                </div>
+            <div className="lg:col-span-8 p-4">
+              <div className="shadow-sm">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left text-gray-600 dark:text-gray-300">
+                      <th className="p-2 sm:p-4 font-medium">Sản phẩm</th>
+                      <th className="hidden sm:table-cell p-2 sm:p-4 font-medium">
+                        Số lượng
+                      </th>
+                      <th className="hidden sm:table-cell p-2 sm:p-4 font-medium text-right">
+                        Tổng cộng
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cartItems.map((item, idx) => (
+                      <tr
+                        key={item.id}
+                        className="text-sm text-gray-800 dark:text-gray-200"
+                      >
+                        {/* Product */}
+                        <td className="p-3 sm:p-4 flex items-center gap-4">
+                          <figure className="w-16 h-16 border border-gray-100/10">
+                            <img
+                              src={item?.image || "defaultLaptop.jpg"}
+                              alt={item.name}
+                              className="w-16 h-16 object-cover"
+                            />
+                          </figure>
+                          <div className="flex flex-col sm:inline-block gap-2">
+                            <span className="font-medium">{item.name}</span>
+                            <div className="flex items-center gap-4 sm:hidden">
+                              <div className="flex items-center border border-gray-100/10 ">
+                                <button
+                                  onClick={() =>
+                                    updateQuantity(
+                                      item.id,
+                                      item.itemQuantity - 1
+                                    )
+                                  }
+                                  className="p-2 cursor-pointer"
+                                >
+                                  <Minus className="w-4 h-4" />
+                                </button>
+                                <p className="px-4 py-2">{item.itemQuantity}</p>
+                                <button
+                                  onClick={() =>
+                                    updateQuantity(
+                                      item.id,
+                                      item.itemQuantity + 1
+                                    )
+                                  }
+                                  className="p-2 cursor-pointer"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </button>
+                              </div>
 
-                <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {cartItems.map((item) => (
-                    <div key={item.id} className="p-4 sm:p-6">
-                      <div className="flex flex-col md:flex-row md:items-center gap-4">
-                        {/* Product Image */}
-                        <div className="flex-shrink-0 sm:mx-0">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover"
-                          />
-                        </div>
-
-                        {/* Product Info */}
-                        <div className="flex-1 sm:text-left">
-                          <h3 className="text-base sm:text-md font-medium text-gray-900 dark:text-white">
-                            {item.name}
-                          </h3>
-                        </div>
-
-                        {/* Price and Controls - Mobile Layout */}
-                        <div className="flex flex-col md:flex-row md:items-center gap-3 sm:gap-4">
-                          {/* Price */}
-                          <div className="sm:text-left">
-                            <span className="text-base sm:text-lg font-semibold text-green-600">
-                              {formatPrice(item.price)}
-                            </span>
-                          </div>
-
-                          {/* Quantity Controls */}
-                          <div className="flex items-center sm:justify-start gap-3">
-                            <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
                               <button
-                                onClick={() =>
-                                  updateQuantity(item.id, item.quantity - 1)
-                                }
-                                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                onClick={() => removeItem(item.id)}
+                                className="dark:text-white text-black"
+                                title="Xóa sản phẩm"
                               >
-                                <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <svg
+                                  aria-hidden="true"
+                                  focusable="false"
+                                  width="16"
+                                  part="icon"
+                                  viewBox="0 0 16 17"
+                                >
+                                  <path
+                                    stroke="currentColor"
+                                    fill="none"
+                                    d="M2 4.5h12M3.5 4.5h9v10h-9v-10ZM6.5 7v5M9.5 7v5M5.5 4.5a2.5 2.5 0 1 1 5 0"
+                                  ></path>
+                                </svg>
                               </button>
-                              <span className="px-3 py-1.5 sm:px-4 sm:py-2 min-w-[2.5rem] text-sm sm:text-base text-gray-900 dark:text-white">
-                                {item.quantity}
-                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Quantity Controls */}
+                        <td className="p-3 sm:p-4 hidden sm:table-cell">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center border border-gray-100/10 ">
                               <button
                                 onClick={() =>
-                                  updateQuantity(item.id, item.quantity + 1)
+                                  updateQuantity(item.id, item.itemQuantity - 1)
                                 }
-                                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                className="p-2 cursor-pointer"
                               >
-                                <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <Minus className="w-4 h-4" />
+                              </button>
+                              <p className="px-4 py-2">{item.itemQuantity}</p>
+                              <button
+                                onClick={() =>
+                                  updateQuantity(item.id, item.itemQuantity + 1)
+                                }
+                                className="p-2 cursor-pointer"
+                              >
+                                <Plus className="w-4 h-4" />
                               </button>
                             </div>
 
-                            {/* Remove Button */}
                             <button
                               onClick={() => removeItem(item.id)}
-                              className="p-1.5 sm:p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
-                              title="Remove item"
+                              className="dark:text-white text-black"
+                              title="Xóa sản phẩm"
                             >
-                              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                              <svg
+                                aria-hidden="true"
+                                focusable="false"
+                                width="16"
+                                part="icon"
+                                viewBox="0 0 16 17"
+                              >
+                                <path
+                                  stroke="currentColor"
+                                  fill="none"
+                                  d="M2 4.5h12M3.5 4.5h9v10h-9v-10ZM6.5 7v5M9.5 7v5M5.5 4.5a2.5 2.5 0 1 1 5 0"
+                                ></path>
+                              </svg>
                             </button>
                           </div>
+                        </td>
 
-                          {/* Subtotal - Mobile */}
-                          <div className="text-right min-w-[100px]">
-                            <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                              {formatPrice(item.price * item.quantity)}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              Subtotal
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Continue Shopping */}
-              <div className="mt-4 sm:mt-6">
-                <Link
-                  to="/products"
-                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-sm sm:text-base"
-                >
-                  <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Continue Shopping
-                </Link>
+                        {/* Subtotal */}
+                        <td className=" p-2 sm:p-4 font-semibold text-right">
+                          {formatPrice(getTotalPrice(item))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
 
             {/* Order Summary */}
             <div className="lg:col-span-4 mt-6 lg:mt-0">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm lg:sticky lg:top-4">
+              <div className="border border-gray-100/20 shadow-sm lg:sticky lg:top-4">
                 <div className="p-4 sm:p-6">
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Order Summary
-                  </h2>
+                  <div className="space-y-3 dark:text-gray-400">
+                    <div className="flex justify-between text-sm sm:text-base">
+                      <span>Tổng tiền hàng</span>
+                      <span>{formatPrice(getTotalItems())}</span>
+                    </div>
 
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                      <span>Subtotal ({getTotalItems()} items)</span>
-                      <span>{formatPrice(getTotalPrice())}</span>
+                    <div className="flex justify-between text-sm sm:text-bas">
+                      <span>Tổng thanh toán</span>
+                      <span>{formatPrice(getTotalItems())}</span>
                     </div>
-                    <div className="flex justify-between text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                      <span>Shipping</span>
-                      <span>Free</span>
-                    </div>
-                    <div className="flex justify-between text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                      <span>Tax</span>
-                      <span>{formatPrice(getTotalPrice() * 0.1)}</span>
-                    </div>
+                    <p className="text-sm">
+                      Thuế và phí vận chuyển được tính khi thanh toán
+                    </p>
                     <hr className="border-gray-200 dark:border-gray-700" />
                     <div className="flex justify-between text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                      <span>Total</span>
-                      <span>
-                        {formatPrice(getTotalPrice() + getTotalPrice() * 0.1)}
-                      </span>
+                      <span>Tổng</span>
+                      <span>{formatPrice(getTotalItems())}</span>
                     </div>
                   </div>
 
-                  <button className="w-full bg-blue-600 text-white py-2.5 sm:py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors mt-4 sm:mt-6 font-medium text-sm sm:text-base">
-                    Proceed to Checkout
+                  <button
+                    onClick={handlePay}
+                    className="cursor-pointer relative overflow-hidden w-full text-white py-2.5 sm:py-3 px-4 border dark:border-gray-100/10 mt-4 sm:mt-6 font-medium text-sm sm:text-base
+                    transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+                  >
+                    Thanh toán
                   </button>
-
-                  <div className="mt-3 sm:mt-4 text-center">
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                      Secure checkout with SSL encryption
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>

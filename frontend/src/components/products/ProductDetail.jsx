@@ -46,6 +46,33 @@ const ProductDetail = () => {
     }
   };
 
+  const handleShopping = (e) => {
+    e.preventDefault();
+    const { id, image, name, shortDesc, price, discount } = selectedProduct;
+    const priceReal = discountPrice(price, discount);
+    let itemQuantity = quantity;
+    let flag = 0;
+    let cart = JSON.parse(localStorage.getItem("items")) || [];
+    cart.forEach((item) => {
+      if (item.id === id && item.itemQuantity) {
+        item.itemQuantity += quantity;
+        flag = 1;
+      }
+    });
+
+    if (!flag) {
+      cart.push({
+        id,
+        image,
+        name,
+        shortDesc,
+        itemQuantity,
+        price: priceReal.split(/\s+/)[0],
+      });
+    }
+    localStorage.setItem("items", JSON.stringify(cart));
+  };
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -188,7 +215,10 @@ const ProductDetail = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
-                <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
+                <button
+                  onClick={handleShopping}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
                   <ShoppingCart className="w-5 h-5" />
                   Thêm vào giỏ hàng
                 </button>
