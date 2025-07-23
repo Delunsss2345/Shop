@@ -18,6 +18,7 @@ module.exports = {
           key: "id",
         },
         field: "cart_id",
+        onDelete: "CASCADE",
       },
       quantity: {
         type: Sequelize.INTEGER,

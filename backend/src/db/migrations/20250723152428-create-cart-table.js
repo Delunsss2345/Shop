@@ -18,10 +18,12 @@ module.exports = {
           key: "id",
         },
         field: "user_id",
+        onDelete: "CASCADE",
       },
       total: {
         type: Sequelize.FLOAT,
         allowNull: false,
+        defaultValue: 0,
       },
       created_at: {
         type: Sequelize.DATE,
