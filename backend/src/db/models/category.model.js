@@ -13,7 +13,6 @@ module.exports = (sequelize, DataTypes) => {
       categoryName: {
         type: DataTypes.STRING(255),
         allowNull: false,
-        field: "category_name",
       },
     },
     {

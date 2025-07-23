@@ -68,6 +68,10 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: "categoryId",
       as: "category",
     });
+    Product.hasMany(db.CartDetail, {
+      foreignKey: "cartId",
+      as: "products",
+    });
   };
 
   return Product;
