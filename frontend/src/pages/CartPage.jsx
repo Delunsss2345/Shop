@@ -1,11 +1,14 @@
+import { useCartStore } from "@/store/useCartStore";
 import { Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const CartPage = () => {
-  const [cartItems, setCarItems] = useState(
-    JSON.parse(localStorage.getItem("items")) || []
-  );
+  const { getCart, updateItem, cartDetails, removeItem } = useCartStore();
+
+  useEffect(() => {
+    getCart();
+  }, [getCart]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -14,43 +17,34 @@ const CartPage = () => {
     }).format(price);
   };
 
-  const updateQuantity = (id, newQuantity) => {
+  const handleRemove = async (id) => {
+    await removeItem(id);
+  };
+  const updateQuantity = async (id, newQuantity) => {
     if (newQuantity <= 0) {
-      removeItem(id);
+      await removeItem(id);
       return;
     }
-    const newCartItems = cartItems.map((item) =>
-      item.id === id ? { ...item, itemQuantity: newQuantity } : item
-    );
-    localStorage.setItem("items", JSON.stringify(newCartItems));
-    setCarItems(newCartItems);
-  };
-
-  const removeItem = (id) => {
-    let newCartItems = cartItems.filter((item) => item.id !== id);
-    localStorage.setItem("items", JSON.stringify(newCartItems));
-    setCarItems(newCartItems);
+    await updateItem(id, newQuantity);
   };
 
   const getTotalPrice = (item) => {
-    const total =
-      item.itemQuantity * parseFloat(item.price.replaceAll(".", ""));
+    const total = item.quantity * parseFloat(item.price);
     return total;
   };
 
   const getTotalItems = () => {
-    return cartItems.reduce(
-      (total, item) =>
-        total + item.itemQuantity * parseFloat(item.price.replaceAll(".", "")),
+    return cartDetails.reduce(
+      (total, item) => total + item.quantity * parseFloat(item.price),
       0
     );
   };
 
   const handlePay = (e) => {
     e.preventDefault();
-    const carts = cartItems.map((cart) => ({
+    const carts = cartDetails.map((cart) => ({
       ...cart,
-      price: parseFloat(cart.price.replaceAll(".", "")),
+      price: parseFloat(cart.price),
     }));
     console.log(carts);
   };
@@ -60,14 +54,14 @@ const CartPage = () => {
       <h2 className="text-center text-4xl">Giỏ hàng</h2>
 
       <div className="w-full sm:max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {cartItems.length === 0 ? (
+        {cartDetails.length === 0 ? (
           <div className="text-center">
             <p className="text-gray-600 dark:text-gray-400 mb-8">
               Giỏ hàng của bạn đang trống
             </p>
             <Link
-              to="/products"
-              className="inline-flex items-center gap-2 border border-gray-100/100 text-white px-6 py-3  transition-colors"
+              to="/"
+              className="inline-flex items-center gap-2 border border-gray-100/30 hover:bg-slate-100/10 text-white px-6 py-3  transition-colors"
             >
               Tiếp tục mua sắm
             </Link>
@@ -90,9 +84,10 @@ const CartPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {cartItems.map((item, idx) => (
+                    {cartDetails.map((item, idx) => (
                       <tr
-                        key={item.id}
+                        data-id={item.productId}
+                        key={item.productId}
                         className="text-sm text-gray-800 dark:text-gray-200"
                       >
                         {/* Product */}
@@ -105,26 +100,28 @@ const CartPage = () => {
                             />
                           </figure>
                           <div className="flex flex-col sm:inline-block gap-2">
-                            <span className="font-medium">{item.name}</span>
+                            <span className="font-medium">
+                              {item.products.name}
+                            </span>
                             <div className="flex items-center gap-4 sm:hidden">
                               <div className="flex items-center border border-gray-100/10 ">
                                 <button
                                   onClick={() =>
                                     updateQuantity(
-                                      item.id,
-                                      item.itemQuantity - 1
+                                      item.productId,
+                                      item.quantity - 1
                                     )
                                   }
                                   className="p-2 cursor-pointer"
                                 >
                                   <Minus className="w-4 h-4" />
                                 </button>
-                                <p className="px-4 py-2">{item.itemQuantity}</p>
+                                <p className="px-4 py-2">{item.quantity}</p>
                                 <button
                                   onClick={() =>
                                     updateQuantity(
-                                      item.id,
-                                      item.itemQuantity + 1
+                                      item.productId,
+                                      item.quantity + 1
                                     )
                                   }
                                   className="p-2 cursor-pointer"
@@ -134,7 +131,7 @@ const CartPage = () => {
                               </div>
 
                               <button
-                                onClick={() => removeItem(item.id)}
+                                onClick={() => handleRemove(item.productId)}
                                 className="dark:text-white text-black"
                                 title="Xóa sản phẩm"
                               >
@@ -162,16 +159,22 @@ const CartPage = () => {
                             <div className="flex items-center border border-gray-100/10 ">
                               <button
                                 onClick={() =>
-                                  updateQuantity(item.id, item.itemQuantity - 1)
+                                  updateQuantity(
+                                    item.productId,
+                                    item.quantity - 1
+                                  )
                                 }
                                 className="p-2 cursor-pointer"
                               >
                                 <Minus className="w-4 h-4" />
                               </button>
-                              <p className="px-4 py-2">{item.itemQuantity}</p>
+                              <p className="px-4 py-2">{item.quantity}</p>
                               <button
                                 onClick={() =>
-                                  updateQuantity(item.id, item.itemQuantity + 1)
+                                  updateQuantity(
+                                    item.productId,
+                                    item.quantity + 1
+                                  )
                                 }
                                 className="p-2 cursor-pointer"
                               >
@@ -180,8 +183,8 @@ const CartPage = () => {
                             </div>
 
                             <button
-                              onClick={() => removeItem(item.id)}
-                              className="dark:text-white text-black"
+                              onClick={() => handleRemove(item.productId)}
+                              className="cursor-pointer hover:text-white p-1 rounded-sm text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-800 transition-colors duration-200"
                               title="Xóa sản phẩm"
                             >
                               <svg

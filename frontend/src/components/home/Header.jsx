@@ -1,6 +1,8 @@
+import { useCartStore } from "@/store/useCartStore";
 import { ShoppingCartIcon, User2 } from "lucide-react";
 import { Link } from "react-router-dom";
 const Header = () => {
+
   return (
     <header className="bg-secondary text-white p-4 ">
       <div className="max-w-7xl w-full mx-auto flex justify-between *:flex *:gap-4 items-center">

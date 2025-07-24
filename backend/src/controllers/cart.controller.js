@@ -22,8 +22,8 @@ class CartController {
   }
   async removeItem(req, res) {
     const { id } = req.params;
-    const { productId } = req.body;
-    const cart = await CartService.removeItem(productId, id);
+    const { productId } = req.query;
+    const cart = await CartService.removeItem(id, productId);
     res.success(200, "Xoá sản phẩm khỏi giỏ thành công", cart);
   }
 }

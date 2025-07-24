@@ -12,16 +12,21 @@ class CartService {
       include: {
         model: db.CartDetail,
         as: "cartDetails",
+        include: {
+          model: db.Product,
+          as: "products",
+        },
       },
     });
 
-    if (!cart) throw new ApiError(404, "Người dùng không có giỏ hàng");
+    if (!cart) {
+      cart = await this.create(userId);
+    }
 
     return cart;
   }
 
   async createCart(userId) {
-    const user = await UserService.findUserById(userId);
     const cart = await db.Cart.create({
       userId: user.id,
     });
@@ -41,7 +46,20 @@ class CartService {
     const cart = await db.Cart.findByPk(cartId);
     cart.total = total;
 
-    return await cart.save();
+    await cart.save();
+    const newCart = await db.Cart.findOne({
+      where: { id: cartId },
+      include: {
+        model: db.CartDetail,
+        as: "cartDetails",
+        include: {
+          model: db.Product,
+          as: "products",
+        },
+      },
+    });
+
+    return newCart;
   }
 
   async addItem(productId, quantity, userId) {
@@ -60,12 +78,13 @@ class CartService {
       await cartItem.save();
     } else {
       const product = await ProductService.getProductById(productId);
-
+      const priceDiscount =
+        product.price - (product.price * product.discount) / 100;
       cartItem = await db.CartDetail.create({
         cartId,
         productId,
         quantity,
-        price: product.price,
+        price: priceDiscount,
       });
     }
 

@@ -1,3 +1,4 @@
+import { useCartStore } from "@/store/useCartStore";
 import { useProductStore } from "@/store/useProductStore";
 import {
   Headphones,
@@ -16,6 +17,7 @@ import { useParams } from "react-router-dom";
 const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [isWishlist, setIsWishlist] = useState(false);
+  const { addItem } = useCartStore();
   const { getProductById, selectedProduct } = useProductStore();
   const { id } = useParams();
 
@@ -46,31 +48,10 @@ const ProductDetail = () => {
     }
   };
 
-  const handleShopping = (e) => {
+  const handleShopping = async (e) => {
     e.preventDefault();
-    const { id, image, name, shortDesc, price, discount } = selectedProduct;
-    const priceReal = discountPrice(price, discount);
-    let itemQuantity = quantity;
-    let flag = 0;
-    let cart = JSON.parse(localStorage.getItem("items")) || [];
-    cart.forEach((item) => {
-      if (item.id === id && item.itemQuantity) {
-        item.itemQuantity += quantity;
-        flag = 1;
-      }
-    });
-
-    if (!flag) {
-      cart.push({
-        id,
-        image,
-        name,
-        shortDesc,
-        itemQuantity,
-        price: priceReal.split(/\s+/)[0],
-      });
-    }
-    localStorage.setItem("items", JSON.stringify(cart));
+    const { id } = selectedProduct;
+    await addItem(id, quantity);
   };
 
   return (
