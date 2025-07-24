@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  CartDetail.associate(function (db) {
+  CartDetail.associate = (function (db) {
     CartDetail.belongsTo(db.Cart, {
       foreignKey: "cartId",
       as: "carts",

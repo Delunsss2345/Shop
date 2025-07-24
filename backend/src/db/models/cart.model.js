@@ -17,10 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       total: {
         type: DataTypes.FLOAT,
         allowNull: false,
-      },
-      totalQuantity: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
+        defaultValue: 0,
       },
     },
     {
@@ -29,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  Cart.associate(function (db) {
+  Cart.associate = function (db) {
     Cart.belongsTo(db.User, {
       foreignKey: "userId",
       as: "users",
@@ -39,7 +36,7 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: "cartId",
       as: "cartDetails",
     });
-  });
+  };
 
   return Cart;
 };

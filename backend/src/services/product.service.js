@@ -27,7 +27,6 @@ class ProductService {
   }
 
   async createProduct(data) {
-    console.log(data);
     let imageProduct;
     if (data.image) {
       imageProduct = await CloudinaryService.uploadCloudinary(

@@ -1,10 +1,35 @@
 const db = require("@/db/models/index");
 
+const UserService = require("@/services/user.service");
+const ProductService = require("@/services/product.service");
 const ApiError = require("@/utils/error/ApiError");
 
 class CartService {
+  async findCartByUserId(userId) {
+    const user = await UserService.findUserById(userId);
+    const cart = await db.Cart.findOne({
+      where: { userId: user.id },
+      include: {
+        model: db.CartDetail,
+        as: "cartDetails",
+      },
+    });
+
+    if (!cart) throw new ApiError(404, "Người dùng không có giỏ hàng");
+
+    return cart;
+  }
+
+  async createCart(userId) {
+    const user = await UserService.findUserById(userId);
+    const cart = await db.Cart.create({
+      userId: user.id,
+    });
+
+    return cart;
+  }
   async updateTotal(cartId) {
-    const cartItems = await db.CartDetails.findAll({
+    const cartItems = await db.CartDetail.findAll({
       where: { cartId },
     });
 
@@ -13,32 +38,30 @@ class CartService {
       0
     );
 
-    await db.Cart.update({ total }, { where: { id: cartId } });
+    const cart = await db.Cart.findByPk(cartId);
+    cart.total = total;
 
-    return total;
+    return await cart.save();
   }
-  async addItem(cartId, productId, quantity, userId) {
-    const cart = await db.Cart.findOne({
-      where: { userId },
-    });
 
-    if (!cart) throw new ApiError(404, "Không có cart hoặc người dùng này");
+  async addItem(productId, quantity, userId) {
+    const cart = await this.findCartByUserId(userId);
+    const cartId = cart.id;
 
-    let cartItem = await db.CartDetails.findOne({
+    let cartItem = await db.CartDetail.findOne({
       where: {
         cartId,
         productId,
       },
     });
+
     if (cartItem) {
       cartItem.quantity += quantity;
       await cartItem.save();
     } else {
-      const product = await db.Product.findByPk(productId);
+      const product = await ProductService.getProductById(productId);
 
-      if (!product) throw new ApiError(404, "Không có sản phẩm này");
-
-      cartItem = await db.CartDetails.create({
+      cartItem = await db.CartDetail.create({
         cartId,
         productId,
         quantity,
@@ -46,20 +69,17 @@ class CartService {
       });
     }
 
-    const total = await this.updateTotal(cartId);
-    return total;
+    return await this.updateTotal(cartId);
   }
   async updateItem(productId, quantity, cartId) {
-    await db.CartDetails.update({ quantity }, { where: { cartId, productId } });
+    await db.CartDetail.update({ quantity }, { where: { cartId, productId } });
 
-    const total = await this.updateTotal(cartId);
-    return total;
+    return await this.updateTotal(cartId);
   }
   async removeItem(cartId, productId) {
-    await db.CartDetails.destroy({ where: { cartId, productId } });
+    await db.CartDetail.destroy({ where: { cartId, productId } });
 
-    const total = await this.updateTotal(cartId);
-    return total;
+    return await this.updateTotal(cartId);
   }
 }
 
