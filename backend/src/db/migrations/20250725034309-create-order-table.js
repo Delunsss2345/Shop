@@ -10,29 +10,25 @@ module.exports = {
         autoIncrement: true,
         allowNull: false,
       },
-      userId: {
+      user_id: {
         type: Sequelize.BIGINT,
         allowNull: false,
-        field: "user_id",
         references: {
           model: "users",
           key: "id",
         },
       },
-      shipName: {
+      ship_name: {
         type: Sequelize.STRING(255),
         allowNull: false,
-        field: "ship_name",
       },
-      shipPhone: {
+      ship_phone: {
         type: Sequelize.STRING(10),
         allowNull: false,
-        field: "ship_phone",
       },
-      shipAddress: {
+      ship_address: {
         type: Sequelize.STRING(255),
         allowNull: false,
-        field: "ship_address",
       },
       total: {
         type: Sequelize.FLOAT,

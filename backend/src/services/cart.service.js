@@ -7,7 +7,7 @@ const ApiError = require("@/utils/error/ApiError");
 class CartService {
   async findCartByUserId(userId) {
     const user = await UserService.findUserById(userId);
-    const cart = await db.Cart.findOne({
+    let cart = await db.Cart.findOne({
       where: { userId: user.id },
       include: {
         model: db.CartDetail,
@@ -20,7 +20,7 @@ class CartService {
     });
 
     if (!cart) {
-      cart = await this.create(userId);
+      cart = await this.createCart(userId);
     }
 
     return cart;
@@ -28,7 +28,7 @@ class CartService {
 
   async createCart(userId) {
     const cart = await db.Cart.create({
-      userId: user.id,
+      userId,
     });
 
     return cart;

@@ -10,19 +10,17 @@ module.exports = {
         autoIncrement: true,
         allowNull: false,
       },
-      orderId: {
+      order_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        field: "order_id",
         references: {
           model: "orders",
           key: "id",
         },
       },
-      productId: {
+      product_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        field: "product_id",
         references: {
           model: "products",
           key: "id",
@@ -30,6 +28,15 @@ module.exports = {
       },
       quantity: {
         type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      discount: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+        defaultValue: 0,
+      },
+      price: {
+        type: Sequelize.FLOAT,
         allowNull: false,
       },
     });

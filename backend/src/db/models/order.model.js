@@ -13,26 +13,32 @@ module.exports = (sequelize, DataTypes) => {
       userId: {
         type: DataTypes.BIGINT,
         allowNull: false,
+        field: "user_id",
       },
       shipName: {
         type: DataTypes.STRING(255),
         allowNull: false,
+        field: "ship_name",
       },
       shipPhone: {
         type: DataTypes.STRING(10),
         allowNull: false,
+        field: "ship_phone",
       },
       shipAddress: {
         type: DataTypes.STRING(255),
         allowNull: false,
+        field: "ship_address",
       },
       total: {
         type: DataTypes.FLOAT,
         allowNull: false,
+        defaultValue: 0,
       },
     },
     {
       tableName: "orders",
+      timestamps: false,
     }
   );
 
@@ -41,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: "userId",
       as: "user",
     });
-    Order.belongsTo(db.OrderDetail, {
+    Order.hasMany(db.OrderDetail, {
       foreignKey: "orderId",
       as: "orderDetails",
     });
