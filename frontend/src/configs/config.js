@@ -4,6 +4,7 @@ import ProductPageAdmin from "@/pages/ProductPageAdmin";
 
 import ProductDetail from "@/components/products/ProductDetail";
 import CartPage from "@/pages/CartPage";
+import CheckoutPage from "@/pages/CheckoutPage";
 import HomePage from "@/pages/HomePage";
 import LoginPage from "@/pages/LoginPage";
 import ProfilePage from "@/pages/ProfilePage";
@@ -32,12 +33,17 @@ export const configRoutes = [
         path: "/",
       },
       {
+        component: CheckoutPage,
+        path: "/checkout",
+      },
+      {
         component: ProductDetail,
         path: "/product/:id",
       },
       {
         component: CartPage,
         path: "/cart",
+        provider: PrivateRoute,
       },
     ],
   },
@@ -46,7 +52,6 @@ export const configRoutes = [
     path: "/profile",
     provider: PrivateRoute,
   },
-
   {
     component: AdminLayout,
     provider: AdminRoute,
